@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background:#060b16; color:white; padding:30px; }
+        .container { max-width:800px; margin:auto; }
+        .card { background:#0d1424; padding:25px; border-radius:20px; margin-bottom:20px; border:1px solid rgba(70,120,255,.15); }
+        h2 { border-bottom:1px solid rgba(255,255,255,.1); padding-bottom:10px; margin-bottom:15px; }
+        label { display:block; margin-top:10px; margin-bottom:5px; color:#9db1f8; }
+        input { width:100%; padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:#060b16; color:white; margin-bottom:10px; }
+        button { background:#2662ff; border:none; padding:12px 25px; border-radius:12px; color:white; font-weight:700; cursor:pointer; transition:.3s; }
+        button:hover { transform:scale(1.02); }
+        table { width:100%; border-collapse:collapse; margin-top:15px; }
+        th, td { padding:10px; text-align:left; border-bottom:1px solid rgba(255,255,255,.05); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Admin Panel <a href="/" style="font-size:14px; color:#3f89ff; text-decoration:none;">← Back to Dashboard</a></h1>
+
+    <div class="card">
+        <h2>General Settings</h2>
+        <label>Login Code</label>
+        <input type="text" id="admin_code" value="">
+        <label>Secret Click Code (20 clicks)</label>
+        <input type="text" id="secret_click_code" value="">
+        <label>Panel Name</label>
+        <input type="text" id="panel_name" value="">
+        <button onclick="saveConfig()">Save Changes</button>
+    </div>
+
+    <div class="card">
+        <h2>All Servers & Passwords</h2>
+        <table id="serverTable">
+            <thead><tr><th>ID</th><th>Name</th><th>Password</th></tr></thead>
+            <tbody id="serverData"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h2>All Uploaded Files</h2>
+        <div id="fileList"></div>
+    </div>
+</div>
+
+<script>
+    loadConfig();
+    loadServerData();
+
+    function loadConfig(){
+        fetch('/api/admin/config')
+        .then(r => r.json())
+        .then(d => {
+            document.getElementById('admin_code').value = d.admin_code;
+            document.getElementById('secret_click_code').value = d.secret_click_code;
+            document.getElementById('panel_name').value = d.panel_name;
+        });
+    }
+
+    function saveConfig(){
+        const data = {
+            admin_code: document.getElementById('admin_code').value,
+            secret_click_code: document.getElementById('secret_click_code').value,
+            panel_name: document.getElementById('panel_name').value
+        };
+        fetch('/api/admin/config', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(data)
+        }).then(r => r.json()).then(d => alert('Updated!'));
+    }
+
+    function loadServerData(){
+        fetch('/api/admin/servers_data')
+        .then(r => r.json())
+        .then(d => {
+            let rows = '';
+            d.forEach(s => {
+                rows += `<tr><td>${s[0]}</td><td>${s[1]}</td><td>${s[2]}</td></tr>`;
+            });
+            document.getElementById('serverData').innerHTML = rows;
+        });
+    }
+</script>
+</body>
+</html>
